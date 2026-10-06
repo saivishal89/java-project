@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management Portal | JDBC & MySQL</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="light-theme">
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- Navigation Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>StudentPortal <span class="brand-tag">Core JDBC</span></h1>
+                    <p class="brand-subtitle">High Performance MySQL Management System</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text" id="dbStatusText">MySQL Connected</span>
+                </div>
+
+                <button class="theme-toggle" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+
+                <button class="btn btn-primary" id="openAddModalBtn">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Add Student</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            
+            <!-- Statistics Banner Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-students">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-title">Total Students</span>
+                        <h2 class="stat-number" id="statTotalStudents">--</h2>
+                        <span class="stat-sub">Live Records</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-dept">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-title">Departments</span>
+                        <h2 class="stat-number" id="statDepartments">--</h2>
+                        <span class="stat-sub">Active Branches</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-course">
+                        <i class="fa-solid fa-book-open-reader"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-title">Active Courses</span>
+                        <h2 class="stat-number" id="statCourses">--</h2>
+                        <span class="stat-sub">Enrolled</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon icon-server">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-title">Database Port</span>
+                        <h2 class="stat-number">3306</h2>
+                        <span class="stat-sub">student_db</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search, Filter & View Controls -->
+            <section class="control-panel">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" placeholder="Search by name, email, course..." autocomplete="off">
+                    <button class="clear-search-btn" id="clearSearchBtn" title="Clear">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="filter-controls">
+                    <div class="select-wrapper">
+                        <select id="searchFieldSelect" title="Search Field">
+                            <option value="name">Search: Name</option>
+                            <option value="email">Search: Email</option>
+                            <option value="course">Search: Course</option>
+                            <option value="department">Search: Department</option>
+                        </select>
+                    </div>
+
+                    <div class="select-wrapper">
+                        <select id="deptFilterSelect" title="Filter by Department">
+                            <option value="ALL">All Departments</option>
+                        </select>
+                    </div>
+
+                    <div class="select-wrapper">
+                        <select id="sortBySelect" title="Sort By">
+                            <option value="id-asc">Sort: ID (Low → High)</option>
+                            <option value="id-desc">Sort: ID (High → Low)</option>
+                            <option value="name-asc">Sort: Name (A → Z)</option>
+                            <option value="name-desc">Sort: Name (Z → A)</option>
+                            <option value="sem-asc">Sort: Semester (1 → 8)</option>
+                        </select>
+                    </div>
+
+                    <div class="view-toggles">
+                        <button class="view-btn active" id="tableViewBtn" title="Table View">
+                            <i class="fa-solid fa-table-list"></i>
+                        </button>
+                        <button class="view-btn" id="cardViewBtn" title="Card View">
+                            <i class="fa-solid fa-grip"></i>
+                        </button>
+                    </div>
+
+                    <button class="btn btn-secondary icon-only" id="refreshBtn" title="Refresh Data">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quick Department Filter Chips -->
+            <div class="quick-filter-bar">
+                <span class="quick-filter-label"><i class="fa-solid fa-filter"></i> Quick Filter:</span>
+                <div class="filter-chips-list" id="quickFilterChips">
+                    <button class="chip-btn active" data-dept="ALL">All Departments</button>
+                    <button class="chip-btn" data-dept="CSE">CSE</button>
+                    <button class="chip-btn" data-dept="IT">IT</button>
+                    <button class="chip-btn" data-dept="ECE">ECE</button>
+                    <button class="chip-btn" data-dept="MECH">MECH</button>
+                    <button class="chip-btn" data-dept="CIVIL">CIVIL</button>
+                </div>
+            </div>
+
+            <!-- Results Summary -->
+            <div class="results-header">
+                <span id="resultsCount">Showing 0 students</span>
+            </div>
+
+            <!-- Student Data Containers -->
+            <div id="tableContainer" class="data-view active">
+                <div class="table-card">
+                    <table class="students-table" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 70px;">ID</th>
+                                <th>Student</th>
+                                <th>Contact</th>
+                                <th>Academic</th>
+                                <th>Age / Gender</th>
+                                <th style="text-align: right; width: 140px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="cardsContainer" class="data-view cards-grid">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">
+                    <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <h3>No Students Found</h3>
+                <p id="emptyStateText">No students match your query or database is currently empty.</p>
+                <button class="btn btn-primary" id="emptyAddBtn">
+                    <i class="fa-solid fa-plus"></i> Add New Student
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Add / Edit Student Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-title-icon" id="modalIconWrap">
+                        <i class="fa-solid fa-user-plus" id="modalHeaderIcon"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle">Add New Student</h3>
+                        <p class="modal-subtitle">Save student record directly to MySQL via JDBC</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="closeModalBtn">&times;</button>
+            </div>
+
+            <form id="studentForm">
+                <input type="hidden" id="studentIdInput" value="">
+
+                <div class="form-grid">
+                    <!-- Full Name -->
+                    <div class="form-group full-width">
+                        <label for="nameInput">Full Name <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="nameInput" placeholder="e.g. Rahul Sharma" required>
+                        </div>
+                        <span class="field-error" id="nameError"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="emailInput">Email Address <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="email" id="emailInput" placeholder="name@example.com" required>
+                        </div>
+                        <span class="field-error" id="emailError"></span>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label for="phoneInput">Phone Number <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-phone"></i>
+                            <input type="text" id="phoneInput" placeholder="10-15 digits" required>
+                        </div>
+                        <span class="field-error" id="phoneError"></span>
+                    </div>
+
+                    <!-- Age -->
+                    <div class="form-group">
+                        <label for="ageInput">Age (15-60) <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-cake-candles"></i>
+                            <input type="number" id="ageInput" min="15" max="60" placeholder="20" required>
+                        </div>
+                        <span class="field-error" id="ageError"></span>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="form-group">
+                        <label for="genderSelect">Gender <span class="required">*</span></label>
+                        <div class="input-icon-wrap select-icon-wrap">
+                            <i class="fa-solid fa-venus-mars"></i>
+                            <select id="genderSelect" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <span class="field-error" id="genderError"></span>
+                    </div>
+
+                    <!-- Department -->
+                    <div class="form-group">
+                        <label for="departmentInput">Department <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-building"></i>
+                            <input type="text" id="departmentInput" placeholder="e.g. CSE, IT, ECE" required>
+                        </div>
+                        <span class="field-error" id="deptError"></span>
+                    </div>
+
+                    <!-- Semester -->
+                    <div class="form-group">
+                        <label for="semesterInput">Semester (1-8) <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <input type="number" id="semesterInput" min="1" max="8" placeholder="3" required>
+                        </div>
+                        <span class="field-error" id="semError"></span>
+                    </div>
+
+                    <!-- Course -->
+                    <div class="form-group full-width">
+                        <label for="courseInput">Course Enrolled <span class="required">*</span></label>
+                        <div class="input-icon-wrap">
+                            <i class="fa-solid fa-book"></i>
+                            <input type="text" id="courseInput" placeholder="e.g. Java Programming, Data Structures" required>
+                        </div>
+                        <span class="field-error" id="courseError"></span>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="form-group full-width">
+                        <label for="addressInput">Residential Address <span class="required">*</span></label>
+                        <div class="input-icon-wrap textarea-icon-wrap">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <textarea id="addressInput" rows="2" placeholder="Full residential address" required></textarea>
+                        </div>
+                        <span class="field-error" id="addressError"></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveStudentBtn">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Save Record</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Student Details Modal -->
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal-dialog view-dialog">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-title-icon view-icon-wrap">
+                        <i class="fa-solid fa-address-card"></i>
+                    </div>
+                    <div>
+                        <h3>Student Profile</h3>
+                        <p class="modal-subtitle">Full record details from MySQL</p>
+                    </div>
+                </div>
+                <button class="modal-close-btn" id="closeViewModalBtn">&times;</button>
+            </div>
+
+            <div class="view-content" id="viewContent">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeViewBtn">Close</button>
+                <button type="button" class="btn btn-primary" id="editFromViewBtn">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Student
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-dialog delete-dialog">
+            <div class="delete-icon-wrap">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3>Delete Student Record?</h3>
+            <p>Are you sure you want to delete <strong id="deleteStudentName">this student</strong> (ID: <span id="deleteStudentId"></span>)? This action is permanent and will execute a MySQL DELETE query.</p>
+            <div class="modal-footer delete-footer">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fa-solid fa-trash-can"></i> Yes, Delete Record
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Main JavaScript Application -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
